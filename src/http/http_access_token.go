@@ -26,6 +26,7 @@ func (handler *accessTokenHandler) GetById(c *gin.Context) {
 	accessToken, err := handler.service.GetById(accessTokenId)
 	if err != nil {
 		c.JSON(err.Status, err)
+		return
 	}
 	c.JSON(http.StatusOK, accessToken)
 }
