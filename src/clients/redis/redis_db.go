@@ -4,19 +4,22 @@ import (
 	"github.com/go-redis/redis/v8"
 	"os"
 	"strconv"
-	"fmt"
+)
+
+const(
+	redisOauthHost     = "redis_oauth_host"
+	redisOauthPassword = "redis_oauth_password"
+	redisOauthDb       = "redis_oauth_db"
 )
 
 var (
 	rdb *redis.Client
+	addr     = os.Getenv(redisOauthHost)
+        password = os.Getenv(redisOauthPassword)
+        db,_     = strconv.Atoi(os.Getenv(redisOauthDb))
 )
 
 func init() {
-	addr     := os.Getenv("redis_oauth_host")
-	password := os.Getenv("redis_oauth_password")
-	db,_     := strconv.Atoi(os.Getenv("redis_oauth_db"))
-
-	fmt.Println(addr, password, db)
 	rdb = redis.NewClient(&redis.Options{
 		Addr:     addr,
 		Password: password,
