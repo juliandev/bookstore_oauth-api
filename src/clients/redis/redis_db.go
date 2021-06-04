@@ -14,11 +14,12 @@ func init() {
 		Password: "",
 		DB:       0,
 	})
+
+	if err := rdb.Ping(rdb.Context()).Err(); err != nil {
+		panic(err)
+        }
 }
 
-func GetSession() (*redis.Client, error) {
-	if err := rdb.Ping(rdb.Context()).Err(); err != nil {
-		return nil, err
-	}
-	return rdb, nil
+func GetSession() *redis.Client {
+	return rdb
 }
