@@ -2,6 +2,7 @@ package access_token
 
 import (
 	"github.com/juliandev/bookstore_oauth-api/src/domain/access_token"
+	"github.com/juliandev/bookstore_oauth-api/src/repository/rest"
 	"github.com/juliandev/bookstore_oauth-api/src/utils/errors"
 	"strings"
 )
@@ -14,16 +15,18 @@ type Repository interface {
 
 type Service interface {
 	GetById(string) (*access_token.AccessToken, *errors.RestErr)
-	Create(access_token.AccessToken) *errors.RestErr
+	Create(access_token.AccessTokenRequest) (*access_token.AccessToken, *errors.RestErr)
         UpdateExpiresTime(access_token.AccessToken) *errors.RestErr
 }
 
 type service struct {
+	restUsersRepository rest.RestUsersRepository
 	repository Repository
 }
 
-func NewService(repo Repository) Service {
+func NewService(repo Repository, usersRepo rest.RestUsersRepository) Service {
 	return &service{
+		restUsersRepository: usersRepo,
 		repository: repo,
 	}
 }
@@ -40,11 +43,23 @@ func (s *service) GetById(accessTokenId string) (*access_token.AccessToken, *err
 	return accessToken, nil
 }
 
-func (s *service) Create(accessToken access_token.AccessToken) *errors.RestErr {
-	if err := accessToken.Validate(); err != nil  {
-		return err
+func (s *service) Create(request access_token.AccessTokenRequest) (*access_token.AccessToken, *errors.RestErr) {
+	if err := request.Validate(); err != nil {
+		return nil, err
 	}
-	return s.repository.Create(accessToken)
+
+	user, err := s.restUsersRepository.LoginUser(request.Username, request.Password)
+	if err != nil {
+		return nil, err
+	}
+	at := access_token.GetNewAccessToken(user.Id)
+	at.Generate()
+
+	if err := s.repository.Create(at); err != nil {
+		return nil, err
+	}
+	return &at, nil
+
 }
 
 func (s *service) UpdateExpiresTime(accessToken access_token.AccessToken) *errors.RestErr {
