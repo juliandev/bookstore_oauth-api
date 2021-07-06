@@ -1,10 +1,11 @@
 package rest
 
 import (
-	"github.com/juliandev/bookstore_oauth-api/src/utils/errors"
+	"github.com/juliandev/bookstore_utils-go/rest_errors"
 	"github.com/juliandev/bookstore_oauth-api/src/domain/users"
 	"github.com/go-resty/resty/v2"
 	"encoding/json"
+	"errors"
 )
 
 var (
@@ -16,7 +17,7 @@ const (
 )
 
 type RestUsersRepository interface {
-	LoginUser(string, string) (*users.User, *errors.RestErr)
+	LoginUser(string, string) (*users.User, rest_errors.RestErr)
 }
 
 type usersRepository struct {}
@@ -25,7 +26,7 @@ func NewRestUsersRepository() RestUsersRepository {
 	return &usersRepository{}
 }
 
-func (r *usersRepository) LoginUser(email string, password string) (*users.User, *errors.RestErr) {
+func (r *usersRepository) LoginUser(email string, password string) (*users.User, rest_errors.RestErr) {
 	request := users.UserLoginRequest {
 		Email: email,
 		Password: password,
@@ -33,19 +34,18 @@ func (r *usersRepository) LoginUser(email string, password string) (*users.User,
 
 	response, err := usersRestClient.SetHeader("Content-Type", "application/json").SetBody(request).Post(BaseURL + "/users/login")
 	if err != nil {
-		return nil, errors.NewInternalServerError(err.Error()) // TODO
+		return nil, rest_errors.NewInternalServerError("invalid rest client response when trying to login user", errors.New("restclient error"))
 	}
 	if response.StatusCode() > 299 {
-		var restErr errors.RestErr
+		var restErr rest_errors.RestErr
 		err := json.Unmarshal(response.Body(), &restErr)
 		if err != nil {
-			return nil, errors.NewInternalServerError("invalid error interface when trying to login user")
+			return nil, rest_errors.NewInternalServerError("invalid error interface when trying to login user", err)
 		}
 	}
 	var user users.User
 	if err := json.Unmarshal(response.Body(), &user); err != nil {
-		return nil, errors.NewInternalServerError("error when trying to unmarshal users response")
+		return nil, rest_errors.NewInternalServerError("error when trying to unmarshal users response", errors.New("json parsing error"))
 	}
 	return &user, nil
-
 }
