@@ -6,14 +6,17 @@ import (
 	"github.com/go-resty/resty/v2"
 	"encoding/json"
 	"errors"
+	"os"
 )
 
 var (
+	baseURL		string
+	usersApiHost    = os.Getenv("USERS_API_HOST")
 	usersRestClient = resty.New().R()
 )
 
 const (
-	BaseURL = "http://localhost:8080"
+	usersApiLocal = "http://localhost:8080"
 )
 
 type RestUsersRepository interface {
@@ -32,7 +35,13 @@ func (r *usersRepository) LoginUser(email string, password string) (*users.User,
 		Password: password,
 	}
 
-	response, err := usersRestClient.SetHeader("Content-Type", "application/json").SetBody(request).Post(BaseURL + "/users/login")
+	if usersApiHost == "" {
+		baseURL = usersApiLocal
+	} else {
+		baseURL = usersApiHost
+	}
+
+	response, err := usersRestClient.SetHeader("Content-Type", "application/json").SetBody(request).Post(baseURL + "/users/login")
 	if err != nil {
 		return nil, rest_errors.NewInternalServerError("invalid rest client response when trying to login user", errors.New("restclient error"))
 	}
