@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
+	"fmt"
 )
 
 var (
@@ -38,8 +39,10 @@ func (r *usersRepository) LoginUser(email string, password string) (*users.User,
 	if usersApiHost == "" {
 		baseURL = usersApiLocal
 	} else {
-		baseURL = usersApiHost
+		baseURL = "http://" + usersApiHost
 	}
+
+	fmt.Println(baseURL)
 
 	response, err := usersRestClient.SetHeader("Content-Type", "application/json").SetBody(request).Post(baseURL + "/users/login")
 	if err != nil {
