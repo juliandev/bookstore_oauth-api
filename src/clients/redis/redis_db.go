@@ -7,9 +7,9 @@ import (
 )
 
 const(
-	redisOauthHost     = "redis_oauth_host"
-	redisOauthPassword = "redis_oauth_password"
-	redisOauthDb       = "redis_oauth_db"
+	redisOauthHost     = "DB_HOST"
+	redisOauthPassword = "DB_PASSWORD"
+	redisOauthDb       = "DB_SCHEMA"
 )
 
 var (
